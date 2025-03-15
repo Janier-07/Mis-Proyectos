@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro y Consulta de Prácticas</title>
+    <style>
+        body {
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            background-color: #ffebcd;
+            text-align: center;
+            padding: 20px;
+            margin: 0;
+        }
+
+        .container {
+            background: #ffcccb;
+            padding: 20px;
+            margin: 20px auto;
+            border-radius: 15px;
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 600px;
+        }
+
+        h2 {
+            color: #ff5733;
+        }
+
+        input, select, textarea, button {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            border: 2px solid #ff5733;
+            border-radius: 10px;
+        }
+
+        button {
+            background-color: #ff5733;
+            color: white;
+            font-size: 16px;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #e74c3c;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th, td {
+            border: 1px solid #ff5733;
+            padding: 5px;
+        }
+
+        .buttons-container {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 9999;
+            display: flex;
+            gap: 10px;
+        }
+
+        .action-buttons {
+            display: flex;
+            justify-content: space-around;
+        }
+
+        /* Responsiveness */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .container {
+                padding: 15px;
+                width: 95%;
+                margin: 10px auto;
+            }
+
+            .buttons-container {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            button {
+                font-size: 14px;
+                padding: 8px;
+            }
+
+            h2 {
+                font-size: 18px;
+            }
+
+            table {
+                font-size: 14px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            h2 {
+                font-size: 16px;
+            }
+
+            input, select, textarea, button {
+                font-size: 14px;
+            }
+
+            .container {
+                padding: 10px;
+            }
+
+            table {
+                font-size: 12px;
+            }
+
+            .buttons-container {
+                flex-direction: column;
+                gap: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="buttons-container">
+        <button onclick="mostrarSeccion('registro')">📌 Registrar</button>
+        <button onclick="mostrarSeccion('consulta')">🔎 Consultar</button>
+    </div>
+
+    <div id="registro" class="container hidden">
+        <h2>📚 Registro de Prácticas 🎨</h2>
+        <form id="registroForm">
+            <input type="text" id="nombreAlumno" placeholder="👩‍🎓 Nombre del Alumno" required>
+            <input type="text" id="licenciatura" placeholder="🎓 Licenciatura" required>
+            <input type="text" id="avd" placeholder="🔍 AVD (Opcional)">
+            <input type="text" id="actividad" placeholder="🎭 Actividad" required>
+            <textarea id="evaluacion" placeholder="📝 Evaluación"></textarea>
+            <input type="number" id="edad" placeholder="👶 Edad de los niños">
+            <input type="number" id="cantidadNiños" placeholder="👦👧 Cantidad de niños">
+            <select id="diagnostico" onchange="toggleDiagnostico()">
+                <option disabled selected>📋 Diagnóstico</option>
+                <option value="No">❌ No</option>
+                <option value="Sí">✅ Sí</option>
+            </select>
+            <input type="text" id="tipoDiagnostico" placeholder="🩺 Tipo de Diagnóstico" class="hidden">
+            <textarea id="actividadesInclusivas" placeholder="🎨 Actividades para incluir" class="hidden"></textarea>
+            <input type="date" id="fecha" required>
+            <input type="time" id="horaInicio" required>
+            <input type="time" id="horaFin" required>
+            <input type="file" id="fotoEvidencia" accept="image/*" multiple>
+            <button type="submit">📌 Registrar</button>
+        </form>
+    </div>
+
+    <div id="consulta" class="container hidden">
+        <h2>🔍 Consulta de Prácticas</h2>
+        <form id="consultaForm" onsubmit="consultarPracticas(event)">
+            <input type="text" id="nombreConsulta" placeholder="Ingrese su Nombre" required>
+            <button type="submit">🔎 Consultar</button>
+        </form>
+        <table>
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Licenciatura</th>
+                    <th>AVD</th>
+                    <th>Actividad</th>
+                    <th>Evaluación</th>
+                    <th>Edad</th>
+                    <th>Cantidad de niños</th>
+                    <th>Diagnóstico</th>
+                    <th>Tipo</th>
+                    <th>Actividades Inclusivas</th>
+                    <th>Fecha</th>
+                    <th>Horario</th>
+                    <th>Fotos</th>
+         
+                </tr>
+            </thead>
+            <tbody id="tablaConsulta"></tbody>
+        </table>
+    </div>
+    
+    <script>
+        function mostrarSeccion(seccion) {
+            document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
+            document.getElementById(seccion).classList.remove('hidden');
+        }
+
+        function toggleDiagnostico() {
+            let mostrar = document.getElementById("diagnostico").value === "Sí";
+            document.getElementById("tipoDiagnostico").classList.toggle("hidden", !mostrar);
+            document.getElementById("actividadesInclusivas").classList.toggle("hidden", !mostrar);
+        }
+
+        document.getElementById("registroForm").addEventListener("submit", function(event) {
+            event.preventDefault();
+            let fotos = Array.from(document.getElementById("fotoEvidencia").files).map(file => file.name);
+            let practica = {
+                nombre: document.getElementById("nombreAlumno").value,
+                licenciatura: document.getElementById("licenciatura").value,
+                avd: document.getElementById("avd").value || "N/A",
+                actividad: document.getElementById("actividad").value,
+                evaluacion: document.getElementById("evaluacion").value || "N/A",
+                edad: document.getElementById("edad").value || "N/A",
+                cantidadNiños: document.getElementById("cantidadNiños").value || "N/A",
+                diagnostico: document.getElementById("diagnostico").value,
+                tipoDiagnostico: document.getElementById("tipoDiagnostico").value || "N/A",
+                actividadesInclusivas: document.getElementById("actividadesInclusivas").value || "N/A",
+                fecha: document.getElementById("fecha").value,
+                horario: document.getElementById("horaInicio").value + " - " + document.getElementById("horaFin").value,
+                fotos
+            };
+            let practicas = JSON.parse(localStorage.getItem("practicas")) || [];
+            practicas.push(practica);
+            localStorage.setItem("practicas", JSON.stringify(practicas));
+            alert("Práctica registrada exitosamente.");
+            document.getElementById("registroForm").reset();  // Limpiar formulario después de registro
+        });
+
+        function consultarPracticas(event) {
+            event.preventDefault();
+            let nombreConsulta = document.getElementById("nombreConsulta").value.toLowerCase();
+            let practicas = JSON.parse(localStorage.getItem("practicas")) || [];
+            let resultados = practicas.filter(practica => practica.nombre.toLowerCase().includes(nombreConsulta));
+            
+            let tablaConsulta = document.getElementById("tablaConsulta");
+            tablaConsulta.innerHTML = ""; // Limpiar tabla antes de mostrar los resultados
+
+            if (resultados.length > 0) {
+                resultados.forEach((practica, index) => {
+                    let row = document.createElement("tr");
+                    row.innerHTML = `
+                        <td>${practica.nombre}</td>
+                        <td>${practica.licenciatura}</td>
+                        <td>${practica.avd}</td>
+                        <td>${practica.actividad}</td>
+                        <td>${practica.evaluacion}</td>
+                        <td>${practica.edad}</td>
+                        <td>${practica.cantidadNiños}</td>
+                        <td>${practica.diagnostico}</td>
+                        <td>${practica.tipoDiagnostico}</td>
+                        <td>${practica.actividadesInclusivas}</td>
+                        <td>${practica.fecha}</td>
+                        <td>${practica.horario}</td>
+                        <td>${practica.fotos.join(", ")}</td>
+                        
+                            
+                        </td>
+                    `;
+                    tablaConsulta.appendChild(row);
+                });
+            } else {
+                let row = document.createElement("tr");
+                row.innerHTML = `<td colspan="14">No se encontraron prácticas para el nombre indicado.</td>`;
+                tablaConsulta.appendChild(row);
+            }
+        }
+
+        function eliminarPractica(index) {
+            let practicas = JSON.parse(localStorage.getItem("practicas")) || [];
+            practicas.splice(index, 1); // Eliminar la práctica
+            localStorage.setItem("practicas", JSON.stringify(practicas));
+            consultarPracticas(new Event('submit')); // Recargar consulta
+        }
+
+        function modificarPractica(index) {
+            let practicas = JSON.parse(localStorage.getItem("practicas")) || [];
+            let practica = practicas[index];
+            document.getElementById("nombreAlumno").value = practica.nombre;
+            document.getElementById("licenciatura").value = practica.licenciatura;
+            document.getElementById("avd").value = practica.avd;
+            document.getElementById("actividad").value = practica.actividad;
+            document.getElementById("evaluacion").value = practica.evaluacion;
+            document.getElementById("edad").value = practica.edad;
+            document.getElementById("cantidadNiños").value = practica.cantidadNiños;
+            document.getElementById("diagnostico").value = practica.diagnostico;
+            document.getElementById("tipoDiagnostico").value = practica.tipoDiagnostico;
+            document.getElementById("actividadesInclusivas").value = practica.actividadesInclusivas;
+            document.getElementById("fecha").value = practica.fecha;
+            document.getElementById("horaInicio").value = practica.horario.split(" - ")[0];
+            document.getElementById("horaFin").value = practica.horario.split(" - ")[1];
+        }
+    </script>
+</body>
+</html>
